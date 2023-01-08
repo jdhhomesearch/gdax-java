@@ -43,8 +43,29 @@ public class OrderService {
         return exchange.delete(deleteEndpoint, new ParameterizedTypeReference<String>(){});
     }
 
+    public List<Order> getOrdersRaw(String... statuses) {
+        throw new RuntimeException("deprecated getOrdersRaw and changed to getOrdersByType");
+    }
+
+    public List<Order> getOrdersByType(String... statuses) {
+        StringBuilder statusParams = null;
+        if (statuses.length > 0) {
+            for (String status : statuses) {
+                if (statusParams == null) {
+                    statusParams = new StringBuilder("?");
+                } else {
+                    statusParams.append("&");
+                }
+                statusParams.append("status=").append(status);
+            }
+        }
+        return exchange.getAsList(ORDERS_ENDPOINT + (statusParams == null ? "" : statusParams.toString()),
+                new ParameterizedTypeReference<Order[]>(){});
+    }
+
     public List<Order> getOpenOrders() {
-        return exchange.getAsList(ORDERS_ENDPOINT, new ParameterizedTypeReference<Order[]>(){});
+        return getOrdersByType();
+        //return exchange.getAsList(ORDERS_ENDPOINT, new ParameterizedTypeReference<Order[]>(){});
     }
 
     public List<Order> cancelAllOpenOrders() {

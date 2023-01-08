@@ -1,8 +1,10 @@
 package com.coinbase.exchange.api.exchange;
 
+import com.coinbase.exchange.api.orders.Order;
 import com.coinbase.exchange.security.Signature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -16,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 
@@ -26,6 +29,8 @@ import static java.util.Collections.emptyList;
 public class CoinbaseExchangeImpl implements CoinbaseExchange {
 
     static final Logger log = LoggerFactory.getLogger(CoinbaseExchangeImpl.class.getName());
+    public static final String COINBASE_RESPONSE_HEADER_BEFORE = "CB-BEFORE";
+    public static final String COINBASE_RESPONSE_HEADER_AFTER = "CB-AFTER";
 
     private final String publicKey;
     private final String passphrase;
@@ -49,13 +54,26 @@ public class CoinbaseExchangeImpl implements CoinbaseExchange {
 
     @Override
     public <T> T get(String resourcePath, ParameterizedTypeReference<T> responseType) {
+        return getWithHeaders(resourcePath, responseType, null);
+    }
+
+    public <T> T getWithHeaders(String resourcePath, ParameterizedTypeReference<T> responseType,
+                                Map<String, String> responseHeaders) {
+        return getWithHeaders(resourcePath, responseType, responseHeaders, 100);
+    }
+    public <T> T getWithHeaders(String resourcePath, ParameterizedTypeReference<T> responseType,
+                                Map<String, String> responseHeaders, Integer limit) {
         try {
+            final String fullPath = getBaseUrl() + resourcePath + (limit != null ? ("?limit=" + limit) : "");
             ResponseEntity<T> responseEntity = restTemplate.exchange(getBaseUrl() + resourcePath,
                     HttpMethod.GET,
                     securityHeaders(resourcePath,
-                    "GET",
-                     ""),
+                            "GET",
+                            ""),
                     responseType);
+            if (null != responseHeaders) {
+                responseHeaders.putAll(responseEntity.getHeaders().toSingleValueMap());
+            }
             return responseEntity.getBody();
         } catch (HttpClientErrorException ex) {
             log.error("GET request Failed for '" + resourcePath + "': " + ex.getResponseBodyAsString());
@@ -65,9 +83,45 @@ public class CoinbaseExchangeImpl implements CoinbaseExchange {
 
     @Override
     public <T> List<T> getAsList(String resourcePath, ParameterizedTypeReference<T[]> responseType) {
-       T[] result = get(resourcePath, responseType);
+       return getAsListWithHeaders(resourcePath, responseType, null);
+    }
 
-       return result == null ? emptyList() : Arrays.asList(result);
+    public <T> List<T> getAsListWithHeaders(String resourcePath, ParameterizedTypeReference<T[]> responseType,
+                                            Map<String, String> responseHeaders) {
+        T[] result = getWithHeaders(resourcePath, responseType, responseHeaders);
+
+        return result == null ? emptyList() : Arrays.asList(result);
+    }
+
+    public <T> T pagedGetWithHeaders(String resourcePath,
+                          ParameterizedTypeReference<T> responseType,
+                          String beforeOrAfter,
+                          Map<String, String> previousResponseHeaders,
+                          Map<String, String> newResponseHeaders,
+                          Integer limit) {
+            resourcePath += (resourcePath.contains("?") ? "&" : "?") + "limit=" + limit;
+
+        if (!beforeOrAfter.equalsIgnoreCase("start")) {
+            final CaseInsensitiveKeyMap<String> caseInsensitiveResponseHeaders = new CaseInsensitiveKeyMap<>();
+            caseInsensitiveResponseHeaders.putAll(previousResponseHeaders);
+            final String headerKey = beforeOrAfter.equalsIgnoreCase("before") ?
+                    COINBASE_RESPONSE_HEADER_BEFORE : COINBASE_RESPONSE_HEADER_AFTER;
+            final String pageNumber = caseInsensitiveResponseHeaders.get(headerKey);
+            //resourcePath += "?" + beforeOrAfter + "=" + pageNumber
+            resourcePath += "&" + beforeOrAfter + "=" + pageNumber;
+        }
+        return getWithHeaders(resourcePath, responseType, newResponseHeaders);
+    }
+
+    public <T> List<T> pagedGetAsListWithHeaders(String resourcePath,
+                             ParameterizedTypeReference<T> responseType,
+                             String beforeOrAfter,
+                             Map<String, String> previousResponseHeaders,
+                             Map<String, String> newResponseHeaders,
+                             Integer limit) {
+        T[] result = (T[]) pagedGetWithHeaders(resourcePath, responseType, beforeOrAfter, previousResponseHeaders,
+                newResponseHeaders, limit );
+        return result == null ? emptyList() : Arrays.asList(result);
     }
 
     @Override
@@ -169,5 +223,17 @@ public class CoinbaseExchangeImpl implements CoinbaseExchange {
             log.error("Unable to serialize", e);
             throw new RuntimeException("Unable to serialize");
         }
+    }
+
+    public <T> ParameterizedTypeReference<T> getParameterizedTypeReferenceForType(T obj) {
+        return new ParameterizedTypeReference<T>(){};
+    }
+
+    public ParameterizedTypeReference<Order> getParameterizedTypeReferenceForOrder() {
+        return new ParameterizedTypeReference<Order>(){};
+    }
+
+    public ParameterizedTypeReference<Order[]> getParameterizedTypeReferenceForOrderArray() {
+        return new ParameterizedTypeReference<Order[]>(){};
     }
 }

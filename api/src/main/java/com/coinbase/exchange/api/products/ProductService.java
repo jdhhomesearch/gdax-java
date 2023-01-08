@@ -1,15 +1,15 @@
 package com.coinbase.exchange.api.products;
 
 import com.coinbase.exchange.api.exchange.CoinbaseExchange;
-import com.coinbase.exchange.model.Candles;
-import com.coinbase.exchange.model.Granularity;
-import com.coinbase.exchange.model.Product;
+import com.coinbase.exchange.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.ParameterizedTypeReference;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +38,30 @@ public class ProductService {
         return new Candles(exchange.get(PRODUCTS_ENDPOINT + "/" + productId + "/candles", new ParameterizedTypeReference<List<String[]>>() {
         }));
     }
+
+    public HashMap<String, Stat> getStats(String productId) {
+        return exchange.get(PRODUCTS_ENDPOINT + "/" + productId + "/stats",
+                new ParameterizedTypeReference<HashMap<String, Stat>>() {
+
+        });
+    }
+
+//    public void statsHelper() {
+//        JsonNode node = mapper.readTree(test);//, new ParameterizedTypeReference<HashMap<String, Stat>[]>(){});
+//        System.out.println(node.getNodeType());
+//
+//        for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
+//            Map.Entry<String, JsonNode> entry = it.next();
+//            String key = entry.getKey();
+//            String txt = entry.getValue().toString();
+//            System.out.println("subnode: " + txt);
+//            if (txt.length() > 0) {
+//                Stat nStat = mapper.readValue(txt, Stat.class);
+//                System.out.println("    " + key + ":  Stat: " + nStat);
+//            }
+//        }
+//
+//    }
 
     public Candles getCandles(String productId, Map<String, String> queryParams) {
         StringBuffer url = new StringBuffer(PRODUCTS_ENDPOINT + "/" + productId + "/candles");

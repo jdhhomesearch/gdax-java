@@ -41,14 +41,14 @@ subprojects { }
 // apply dependency constraints to all java modules
 configure(subprojects.findAll { true }) {
 
-    sourceCompatibility = 1.11
-    targetCompatibility = 1.11
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     dependencies {
         constraints {
             implementation 'com.fasterxml.jackson.core:jackson-core:2.11.0'
             implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
-            implementation 'com.fasterxml.jackson.core:jackson-annotations:2.11.0'
+            implementation 'com.fasterxml.jackson.core:jackson-annotations:2.6.0'
             implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.11.0'
             implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.0'
             implementation 'org.slf4j:slf4j-api:1.7.28'

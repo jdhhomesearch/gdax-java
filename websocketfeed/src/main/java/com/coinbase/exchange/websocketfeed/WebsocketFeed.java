@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Websocketfeed adapted from someone else's code
  * <p>
- * >Jiji Sasidharan
+ * Jiji Sasidharan
  */
 @ClientEndpoint
 public class WebsocketFeed {

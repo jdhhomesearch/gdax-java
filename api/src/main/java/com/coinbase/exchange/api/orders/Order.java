@@ -1,5 +1,7 @@
 package com.coinbase.exchange.api.orders;
 
+import java.util.Locale;
+
 /**
  * Created by robevansuk on 03/02/2017.
  */
@@ -176,6 +178,10 @@ public class Order {
         this.settled = settled;
     }
 
+    public boolean isBuy() {
+        return getSide().substring(0, 0).equalsIgnoreCase("b");
+    }
+
     public String toString() {
         String orderString = getSide();
         orderString += ": " + getProduct_id();
@@ -184,4 +190,24 @@ public class Order {
         return orderString;
     }
 
+    public String toStringLong() {
+        final StringBuffer sb = new StringBuffer("Order{");
+        sb.append("product_id='").append(product_id).append('\'');
+        sb.append(", size='").append(size).append('\'');
+        sb.append(", price='").append(price).append('\'');
+        sb.append(", side='").append(side).append('\'');
+        sb.append(", stp='").append(stp).append('\'');
+        sb.append(", type='").append(type).append('\'');
+        sb.append(", time_in_force='").append(time_in_force).append('\'');
+        sb.append(", post_only='").append(post_only).append('\'');
+        sb.append(", created_at='").append(created_at).append('\'');
+        sb.append(", fill_fees='").append(fill_fees).append('\'');
+        sb.append(", filled_size='").append(filled_size).append('\'');
+        sb.append(", executed_value='").append(executed_value).append('\'');
+        sb.append(", status='").append(status).append('\'');
+        sb.append(", settled=").append(settled);
+        sb.append(", id='").append(id).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

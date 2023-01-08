@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * See class doc for BaseIntegrationTest
  *
  * Created by irufus (sakamura@gmail.com)
- * @Description The primary function of this class is to run through basic tests for the Authentication and GdaxExchange classes
+ * Description The primary function of this class is to run through basic tests for the Authentication and GdaxExchange classes
  */
 @ExtendWith(SpringExtension.class)
 @Import({IntegrationTestConfiguration.class})
